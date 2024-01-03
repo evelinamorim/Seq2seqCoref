@@ -114,6 +114,9 @@ class ConllDocState(DocumentState):
             first_subtoken_index = seg_offset - 1
             for i, tok_info in enumerate(segment):
                 first_subtoken_index += 1
+                # in the portuguese dataset the coreference information is in the 
+                # last element not in the last position
+                # 
                 coref = tok_info[-2] if tok_info is not None else '-'
                 if coref != "-":
                     last_subtoken_index = first_subtoken_index + \
@@ -401,10 +404,15 @@ def get_conll_document(
     doc_lines = document_lines[1]
 
     for line in doc_lines:
-        row = line.split()
+        row = line.replace("\n","").split()
         sentence_end = len(row) == 0
+        
+        if len(row) < 7:
+            row = line.replace("\n","").split('\t')
         if not sentence_end:
-            assert len(row) >= 12
+            assert len(row) >= 12 or len(row) >= 7 
+
+
             if include_speaker:
                 speaker_orthography = row[9].replace("_",
                                                      " ").replace("#",
@@ -436,7 +444,10 @@ def get_conll_document(
                 row.append('-')
 
             word_idx += 1
-            word = normalize_word(row[3], language)
+            if len(row) >= 12:
+                word = normalize_word(row[3], language)
+            else:
+                word = normalize_word(row[1], language)
 
             if is_punctuation(word):
                 subtokens = tokenizer.tokenize(word)[1:]  # skipping '_'
@@ -479,6 +490,7 @@ def get_conll_document(
         document_state, segment_len, stride, constraints1,
         document_state.token_end, is_train, False
     )
+
     document = document_state.finalize()
     return document
 
@@ -850,6 +862,7 @@ def minimize_conll_split(
     count = 0
     logger.info("Minimizing {}".format(input_path))
     documents = []
+
     with open(input_path, "r") as input_file:
         for line in input_file.readlines():
             begin_document_match = re.match(conll.BEGIN_DOCUMENT_REGEX, line)
@@ -858,15 +871,24 @@ def minimize_conll_split(
                     begin_document_match.group(1), begin_document_match.group(2)
                 )
                 documents.append((doc_key, []))
-            elif line.startswith("#end document"):
-                continue
             else:
-                documents[-1][1].append(line)
+                # when the document starts with no part specified
+                begin_document_match = re.match(conll.BEGIN_DOCUMENT_REGEX_NOPART, line)
+                if begin_document_match:
+                    doc_key = conll.get_doc_key(
+                        begin_document_match.group(1), "000"
+                    )
+                    documents.append((doc_key, []))
+                elif line.startswith("#end document"):
+                    continue
+                else:
+                    documents[-1][1].append(line)
 
     datasets, max_target_len = [], 0
     max_input_len = 0
     max_num_clusters = 0
     max_seg_clusters = 0
+
     for document_lines in documents:
         document = get_conll_document(document_lines, tokenizer, language,
                                       seg_len, stride, is_train,
@@ -882,9 +904,10 @@ def minimize_conll_split(
                 [max_num_clusters] + [len(doc['seg_clusters'])])
             datasets.append(doc)
             count += 1
-    with open(output_path, 'w') as f:
+
+    with open(output_path, 'w', encoding='utf-8') as f:
         for d in datasets:
-            f.write('%s\n' % json.dumps(d))
+            f.write('%s\n' % json.dumps(d, ensure_ascii=False))
     logger.info(
         f"Maximum input sequence length: {max_input_len}, "
         f"Maximum target sequence length: {max_target_len}")
@@ -905,6 +928,11 @@ def minimize_data(data_name, language, seg_len, stride, input_dir,
         minimize_conll_split("test", language, "v4_gold_conll", None,
                              tokenizer, seg_len, stride, input_dir,
                              output_dir, True)
+    elif data_name == "corefpt":
+        minimize_conll_split("train", "portuguese", "v4_gold_conll", None,
+                             tokenizer, seg_len, stride, input_dir,
+                             output_dir, False)
+
     elif data_name == "preco":
         minimize_json_split("train", tokenizer, seg_len, stride, input_dir,
                             output_dir)

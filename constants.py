@@ -1,7 +1,7 @@
 from transformers import T5Tokenizer
 from copy import deepcopy
 
-int_tokenizer = T5Tokenizer.from_pretrained("t5-small", model_max_length=4096)
+int_tokenizer = T5Tokenizer.from_pretrained("google/mt5-small", model_max_length=4096)
 
 SPEAKER_START = '<speaker>'
 SPEAKER_END = '</speaker>'
@@ -33,7 +33,7 @@ integers = list(set(integers))
 SPECIAL_IDS['integers'] = integers
 
 mention_end_non_int_tokenizer = T5Tokenizer.from_pretrained(
-    "t5-small",
+    "google/mt5-small",
     model_max_length=4096)
 CLUSTER_NEW = '</new>'
 CLUSTERS = []
@@ -72,7 +72,7 @@ MENTION_END_NON_INT_SPECIAL_IDS = {
     'eos': mention_end_non_int_tokenizer.eos_token_id
 }
 
-mark_sent_tokenizer = T5Tokenizer.from_pretrained("t5-small",
+mark_sent_tokenizer = T5Tokenizer.from_pretrained("google/mt5-small",
                                                   model_max_length=4096)
 
 SENTENCE_START = '<sentence>'
@@ -90,7 +90,7 @@ MARK_SPECIAL_IDS['sentence_end'] = mark_sent_tokenizer.encode(
     SENTENCE_END, add_special_tokens=False)[0]
 
 non_int_tokenizer = T5Tokenizer.from_pretrained(
-    "t5-small",
+    "google/mt5-small",
     model_max_length=4096)
 MENTION_ENDS = []
 for i in range(500):
