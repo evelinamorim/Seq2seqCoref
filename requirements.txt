@@ -1,5 +1,6 @@
 torch
 joblib
+unidecode
 pydantic==1.10.2
 transformers==4.24.0
 datasets==2.7.1
