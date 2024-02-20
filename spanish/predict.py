@@ -7,6 +7,7 @@ from transformers import AutoTokenizer
 import argparse
 import time
 import joblib
+import unidecode
 
 import os
 
@@ -38,7 +39,7 @@ def main():
 
     num_parameters = sum(p.numel() for p in model.parameters())
     print("Number of Parameters:", num_parameters)
-    output_path = "/home/uud15559/Seq2seqCoref/portuguese/output/"
+    output_path = "/home/uud15559/Seq2seqCoref/spanish/output/"
 
     for doc in sentences:
         output_file = os.path.join(output_path, doc + ".joblib")
@@ -48,10 +49,10 @@ def main():
         start_time = time.time()
 
         print(f"Processing document {doc} {len(sentences[doc])}")
-        text = " ".join(sentences[doc])
+        text = unidecode.unidecode(" ".join(sentences[doc]))
 
         input_ids = tokenizer(text, return_tensors="pt").input_ids
-        if input_ids.shape[1] < 2048 or input_ids.shape[1] > 4096:
+        if input_ids.shape[1] > 4096:
           continue
         print(">>>", input_ids.shape[1])
         input_ids = input_ids.to(device)
