@@ -1,8 +1,12 @@
 import argparse
 import re
 from nltk import word_tokenize
+import random
 
 punctuation = ".!?:;,"
+
+# Set the random seed for reproducibility
+random.seed(42)  # You can use any integer value here
 
 def read_conll(file_path):
     mentions_clusters = {}
@@ -79,6 +83,41 @@ def read_conll(file_path):
 
     return mentions_clusters, sentences
 
+def build_splits(bin1, bin2):
+    # Define the proportions for training, testing, and validation sets
+    train_ratio = 0.7
+    test_ratio = 0.2
+    val_ratio = 0.1
+
+    # Shuffle the documents in each bin to ensure randomness
+    random.shuffle(bin1)
+    random.shuffle(bin2)
+
+    # Calculate the number of documents for each set based on the ratios
+    num_bin1 = len(bin1)
+    num_bin2 = len(bin2)
+
+    num_train_bin1 = int(train_ratio * num_bin1)
+    num_test_bin1 = int(test_ratio * num_bin1)
+    num_val_bin1 = num_bin1 - num_train_bin1 - num_test_bin1
+
+    num_train_bin2 = int(train_ratio * num_bin2)
+    num_test_bin2 = int(test_ratio * num_bin2)
+    num_val_bin2 = num_bin2 - num_train_bin2 - num_test_bin2
+
+    # Split bin 1 into training, testing, and validation sets
+    train_bin1 = bin1[:num_train_bin1]
+    test_bin1 = bin1[num_train_bin1:num_train_bin1 + num_test_bin1]
+    val_bin1 = bin1[num_train_bin1 + num_test_bin1:]
+
+    # Split bin 2 into training, testing, and validation sets
+    train_bin2 = bin2[:num_train_bin2]
+    test_bin2 = bin2[num_train_bin2:num_train_bin2 + num_test_bin2]
+    val_bin2 = bin2[num_train_bin2 + num_test_bin2:]
+
+    return train_bin1 + train_bin2, test_bin1 + test_bin1, val_bin1 + val_bin2
+
+
 def main():
     parser = argparse.ArgumentParser(description='Extract mentions and clusters from CoNLL file.')
     parser.add_argument('--input', required=True, help='Path to the input CoNLL file')
@@ -88,13 +127,45 @@ def main():
 
     mentions_clusters, sentences = read_conll(file_path)
     ntokens = []
+    hist_ = {"<=500":0,">500_<=2000":0,">=2000":0}
+
+    split = {"500":[],"2000":[]}
     for doc in sentences:
         count_tokens = 0
         for sent in sentences[doc]:
             count_tokens += len(word_tokenize(sent))
+        if count_tokens <= 500:
+            hist_["<=500"] +=  1
+            split["500"].append(doc)
+        elif count_tokens > 500 and count_tokens <= 2000:
+            hist_[">500_<=2000"] +=  1
+            split["2000"].append(doc)
+        else:
+            hist_[">=2000"] +=  1
         ntokens.append(count_tokens)
     print(f"There are {len(sentences)} documents.")
     print(f"The average number of tokens is {sum(ntokens)/len(ntokens)}.")
+    print(hist_)
+
+    train_split, test_split, val_split = build_splits(split["500"], split["2000"])
+
+    print(f"Train split lenght:{len(train_split)}")
+    print(f"Test split lenght:{len(test_split)}")
+    print(f"Validation split lenght:{len(val_split)}")
+
+    with open("train.split", "w") as fd:
+        for file_name in train_split:
+            fd.write(f"{file_name}\n")
+
+    with open("test.split", "w") as fd:
+        for file_name in test_split:
+            fd.write(f"{file_name}\n")
+
+    with open("val.split", "w") as fd:
+        for file_name in val_split:
+            fd.write(f"{file_name}\n")
+
+
     #print(len(sentences["D1_C30_Folha_07-08-2007_09h19.txt.xml"]))
     #for document, mentions in mentions_clusters.items():
     #    print(f'Documento: {document}')
