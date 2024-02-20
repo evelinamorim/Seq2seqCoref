@@ -1,5 +1,6 @@
 import argparse
 import re
+from nltk import word_tokenize
 
 punctuation = ".!?:;,"
 
@@ -45,6 +46,7 @@ def read_conll(file_path):
                         # first token in the sentence
                         if len(sent_txt) > 0:
                             sentences[current_document].append(sent_txt.rstrip()) 
+                            #print(sentences[current_document])
                         sent_txt = mention
                         sent_id = sent_id + 1 
 
@@ -85,13 +87,21 @@ def main():
     file_path = args.input
 
     mentions_clusters, sentences = read_conll(file_path)
-
-    for document, mentions in mentions_clusters.items():
-        print(f'Documento: {document}')
-        for mention, token_id, sent_id, clusters in mentions:
-            print(f'Menção: {mention}, Token id:{token_id}, Sentence id:{sent_id} , Clusters: {clusters}')
-            print(f'Sentence: {sentences[document][sent_id - 1]}')
-        print()
+    ntokens = []
+    for doc in sentences:
+        count_tokens = 0
+        for sent in sentences[doc]:
+            count_tokens += len(word_tokenize(sent))
+        ntokens.append(count_tokens)
+    print(f"There are {len(sentences)} documents.")
+    print(f"The average number of tokens is {sum(ntokens)/len(ntokens)}.")
+    #print(len(sentences["D1_C30_Folha_07-08-2007_09h19.txt.xml"]))
+    #for document, mentions in mentions_clusters.items():
+    #    print(f'Documento: {document}')
+    #    for mention, token_id, sent_id, clusters in mentions:
+    #        print(f'Menção: {mention}, Token id:{token_id}, Sentence id:{sent_id} , Clusters: {clusters}')
+    #        print(f'Sentence: {sentences[document][sent_id - 1]}')
+    #    print()
 
 if __name__ == "__main__":
     main()
