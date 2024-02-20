@@ -39,7 +39,7 @@ def main():
 
     num_parameters = sum(p.numel() for p in model.parameters())
     print("Number of Parameters:", num_parameters)
-    output_path = "/home/uud15559/Seq2seqCoref/portuguese/output/"
+    output_path = "/home/uud15559/Seq2seqCoref/spanish/output/"
 
     for doc in sentences:
         output_file = os.path.join(output_path, doc + ".joblib")
