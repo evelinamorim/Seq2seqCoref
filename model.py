@@ -25,7 +25,7 @@ logger = logging.get_logger(__name__)
 
 _CONFIG_FOR_DOC = "T5Config"
 _TOKENIZER_FOR_DOC = "T5Tokenizer"
-_CHECKPOINT_FOR_DOC = "t5-small"
+_CHECKPOINT_FOR_DOC = "mt5-small"
 
 
 class ConstrainedT5(T5ForConditionalGeneration):

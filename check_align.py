@@ -118,7 +118,7 @@ def oracle_align(doc_labels, samples, tokenizer, align_mode, mark_sentence) -> \
 
 def main(args):
     print('load data')
-    tokenizer = T5Tokenizer.from_pretrained("t5-small", model_max_length=4096)
+    tokenizer = T5Tokenizer.from_pretrained("mt5-small", model_max_length=4096)
     tokenizer.add_tokens([SPEAKER_START, SPEAKER_END,
                           MENTION_START, MENTION_END, COPY])
     if args.mark_sentence:
