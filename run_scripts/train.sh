@@ -38,7 +38,8 @@ eval_bsz=${16}
 #MODEL_NAME="bigscience/T0_3B"
 #MODEL_NAME="google/flan-t5-xl"
 #epochs=100
-gpus="0,1,2,3,4,5,6,7"
+#gpus="0,1,2,3,4,5,6,7"
+gpus="0"
 warmup=0.1
 train_len=2048
 train_len_out=4096
@@ -53,11 +54,12 @@ train_bsz=1
 #eval_delay=30000
 
 weight_decay=0.01
-n_gpu=8
+n_gpu=1
 ds_config_dir="ds_configs"
 
 
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+#export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=0
 export TRANSFORMERS_NO_ADVISORY_WARNINGS=1
 
 echo "training generative coreference model with trainer ... "
