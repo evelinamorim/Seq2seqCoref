@@ -229,8 +229,8 @@ class CorefTrainer(Seq2SeqTrainer):
         delay_optimizer_creation = True
         if args.deepspeed:
             deepspeed_engine, optimizer, lr_scheduler = deepspeed_init(
-                self, num_training_steps=max_steps,
-                resume_from_checkpoint=resume_from_checkpoint
+                self, num_training_steps=max_steps
+                #resume_from_checkpoint=resume_from_checkpoint
             )
             self.model = deepspeed_engine.module
             self.model_wrapped = deepspeed_engine
