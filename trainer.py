@@ -29,7 +29,7 @@ import math
 from transformers.pytorch_utils import is_torch_greater_or_equal_than_1_12
 from torch.utils.data import DataLoader
 from transformers.trainer_utils import EvalLoopOutput, has_length, \
-    denumpify_detensorize, ShardedDDPOption
+    denumpify_detensorize
 from data import get_document_predicts, parse_int_output_tokens, \
     parse_short_target_tokens, parse_nonint_output_tokens
 from constants import SPECIAL_IDS, MARK_SPECIAL_IDS, NON_INT_SPECIAL_IDS, \
@@ -40,18 +40,19 @@ from transformers.trainer_pt_utils import find_batch_size, nested_concat, \
 from transformers.modeling_utils import PreTrainedModel, unwrap_model, \
     load_sharded_checkpoint
 
+
+
 from transformers.utils import logging, is_torch_tpu_available, \
     is_sagemaker_mp_enabled, is_safetensors_available, SAFE_WEIGHTS_NAME, \
     WEIGHTS_NAME, WEIGHTS_INDEX_NAME
-from transformers.integrations import is_fairscale_available
+
 from transformers.dependency_versions_check import dep_version_check
 
 if is_torch_tpu_available(check_device=False):
     import torch_xla.core.xla_model as xm
     import torch_xla.debug.metrics as met
     import torch_xla.distributed.parallel_loader as pl
-if is_fairscale_available():
-    dep_version_check("fairscale")
+
 if is_sagemaker_mp_enabled():
     import smdistributed.modelparallel.torch as smp
     from smdistributed.modelparallel import __version__ as SMP_VERSION
@@ -221,7 +222,7 @@ class CorefTrainer(Seq2SeqTrainer):
 
         delay_optimizer_creation = (
                 self.sharded_ddp is not None
-                and self.sharded_ddp != ShardedDDPOption.SIMPLE
+                and self.sharded_ddp != "simple"
                 or is_sagemaker_mp_enabled()
                 or self.fsdp is not None
         )
@@ -354,7 +355,7 @@ class CorefTrainer(Seq2SeqTrainer):
                                             "sampler") and isinstance(
                     train_dataloader.sampler, RandomSampler
                 )
-                if is_torch_less_than_1_11 or not is_random_sampler:
+                if is_torch_greater_or_equal_than_1_12 or not is_random_sampler:
                     # We just need to begin an iteration to create the randomization of the sampler.
                     # That was before PyTorch 1.11 however...
                     if self.args.joint_train:
