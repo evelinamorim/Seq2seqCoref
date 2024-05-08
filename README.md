@@ -29,7 +29,7 @@ pip install -r requirements.txt
 
 ```
 python ./preprocess_scripts/preprocess_data.py \
-    --dataset_name [ontonotes, preco, litbank] \
+    --dataset_name [ontonotes, preco, litbank,corefpt] \
     --input_dir [your raw data directory for dataset_name] \
     --output_dir [your processed data directory for dataset_name] \
     --language english \

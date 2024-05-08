@@ -194,7 +194,7 @@ class CorefDataset(Dataset):
             self.data_args.max_eval_len
         data_path = os.path.join(
             self.data_args.data_dir,
-            f'{self.split}.t5-small.english.{max_len}.jsonlines')
+            f'{self.split}.t5-small.{self.data_args.language}.{max_len}.jsonlines')
         samples = []
         doc_labels = {}
         thred = self.train_args.min_num_mentions

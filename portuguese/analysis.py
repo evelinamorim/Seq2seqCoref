@@ -11,6 +11,10 @@ from sklearn.metrics import precision_score, recall_score, f1_score
 from collections import defaultdict
 from itertools import combinations
 
+import argparse
+
+import pdb
+
 def build_clusters(data):
     clusters = defaultdict(list)
     for mention, cluster_number in data:
@@ -41,6 +45,7 @@ def compute_muc(golden_data, pred_data):
         for pred_cluster_mentions in pred_clusters.values():
             common_mentions = set(gold_cluster_mentions) & set(pred_cluster_mentions)
             num_common_pairs = len(list(combinations(common_mentions, 2)))
+
             num_correct_pairs += num_common_pairs
 
     # Calculate precision, recall, and F1 score
@@ -170,6 +175,29 @@ def join_tokens(tok_lst):
 
         return tok_join.strip()
 
+def get_mentions_notag(mentions_output):
+    """
+    The input is a string of mentions in a not tag format
+
+    the output is a list of tuples. Each tuple is a mention of an entity and 
+    the cluster number
+    """
+    ans = []
+    mentions = mentions_output.split("|")
+    for m in mentions:
+        match = re.search(r'\b\d+\b', m)
+        #print(match, m)
+        if match:
+            number = int(match.group())
+            start_span, end_span = match.span()
+            mention_text = m[3+1:]
+            
+            ans.append((mention_text.strip(),number))
+        #else:
+        #    print(f"Warning: Cluster with an unique mention {m}")
+        
+    return ans
+
 
 def get_mentions(mentions_output):
     """
@@ -243,8 +271,10 @@ def read_conll(data_file):
                         idx_cluster = stack_cluster.index(cluster_number_ends)
                         start_token = stack_starts[idx_cluster]
 
-                        cluster_txt = unidecode.unidecode(join_tokens(
-                            cluster_token_lst[start_token:]))
+                        #cluster_txt = unidecode.unidecode(join_tokens(
+                        #    cluster_token_lst[start_token:]))
+                        cluster_txt = join_tokens(cluster_token_lst[start_token:])
+
 
                         stack_cluster.pop(idx_cluster)
                         stack_starts.pop(idx_cluster)
@@ -281,94 +311,118 @@ def compute_mentions_metrics(gold_mentions, pred_mentions):
     return precision, recall, f1
 
 
-output_dir = "results_test/"
-golden_data = "results/Corref-PT-SemEval_v2.v4_gold_conll"
+# output_dir = "results_pt_mt5/"
+# golden_data = "results/Corref-PT-SemEval_v2.v4_gold_conll"
 
-golden_mentions = read_conll(golden_data)
-predict_mentions = {}
+def main():
+    # Create ArgumentParser object
+    parser = argparse.ArgumentParser(description="Read input and golden values")
 
-file_lst = os.listdir(output_dir)
-
-for f in file_lst:
-    if f.endswith(".joblib"):
-        output_file = os.path.join(output_dir, f)
-        data = joblib.load(output_file)
-
-        mention_lst = get_mentions(data[0])
-        doc = os.path.splitext(f)[0]
-        predict_mentions[doc] = mention_lst
-
-# entity identification
-# precision, recall, f1
-#0.4048749066550904 0.193332087449251 0.2418257674778436
-
-# TODO: investigar quando f1 eh 0?
-precision_final = 0
-recall_final = 0
-f1_final = 0
-
-p_muc_final = 0
-r_muc_final = 0
-f1_muc_final = 0
-
-p_b3_final = 0
-r_b3_final = 0
-f1_b3_final = 0
-
-p_ceaf_final = 0
-r_ceaf_final = 0
-f1_ceaf_final = 0
+    # Add arguments
+    parser.add_argument("--input", "-i", type=str, help="Input value")
+    parser.add_argument("--golden", "-g", type=str, help="Golden value")
+    parser.add_argument("--cluster", "-c", default="notag",type=str, help="Cluster type (tag or notag)")
 
 
-for doc in golden_mentions:
-    if doc in predict_mentions and len(predict_mentions[doc]) > 0:
-        p_muc, r_muc, f1_muc = compute_muc(golden_mentions[doc], predict_mentions[doc])
-        p_muc_final += p_muc
-        r_muc_final += r_muc
-        f1_muc_final += f1_muc
+    # Parse the command line arguments
+    args = parser.parse_args()
 
-        p_b3, r_b3, f1_b3 = compute_bcubed(golden_mentions[doc], predict_mentions[doc])
-        p_b3_final += p_b3
-        r_b3_final += r_b3
-        f1_b3_final += f1_b3
+    # Access the input and golden values
+    pred_data_dir = args.input
+    golden_data = args.golden
 
-        p_ceaf, r_ceaf, f1_ceaf = compute_ceaf(golden_mentions[doc], predict_mentions[doc])
-        p_ceaf_final += p_ceaf
-        r_ceaf_final += r_ceaf
-        f1_ceaf_final += f1_ceaf
+    
+    golden_mentions = read_conll(golden_data)
+    predict_mentions = {}
 
-        precision, recall, f1 = compute_mentions_metrics(
-            golden_mentions[doc], predict_mentions[doc])
-        precision_final += precision
-        recall_final += recall
-        f1_final += f1
+    file_lst = os.listdir(pred_data_dir)
 
-precision_final = precision_final / len(golden_mentions)
-recall_final = recall_final / len(golden_mentions)
-f1_final = f1_final / len(golden_mentions)
+    for f in file_lst:
+        if f.endswith(".joblib"):
+            pred_file = os.path.join(pred_data_dir, f)
+            data = joblib.load(pred_file)
 
-print(precision_final, recall_final, f1_final)
+            if args.cluster == "notag":
+                mention_lst = get_mentions_notag(data[0])
+            else:
+                mention_lst = get_mentions(data[0])
+            doc = os.path.splitext(f)[0]
+            predict_mentions[doc] = mention_lst
 
-print("MUC")
+    # entity identification
+    # precision, recall, f1
+    #0.4048749066550904 0.193332087449251 0.2418257674778436
+ 
+    # TODO: investigar quando f1 eh 0?
+    precision_final = 0
+    recall_final = 0
+    f1_final = 0
 
-p_muc_final = p_muc_final / len(golden_mentions)
-r_muc_final = r_muc_final / len(golden_mentions)
-f1_muc_final = f1_muc_final / len(golden_mentions)
+    p_muc_final = 0
+    r_muc_final = 0
+    f1_muc_final = 0
 
-print(p_muc_final, r_muc_final, f1_muc_final)
+    p_b3_final = 0
+    r_b3_final = 0
+    f1_b3_final = 0
 
-print("B3")
+    p_ceaf_final = 0
+    r_ceaf_final = 0
+    f1_ceaf_final = 0
 
-p_b3_final = p_b3_final / len(golden_mentions)
-r_b3_final = r_b3_final / len(golden_mentions)
-f1_b3_final = f1_b3_final / len(golden_mentions)
 
-print(p_b3_final, r_b3_final, f1_b3_final)
+    for doc in golden_mentions:
+        if doc in predict_mentions and len(predict_mentions[doc]) > 0:
+            p_muc, r_muc, f1_muc = compute_muc(golden_mentions[doc], predict_mentions[doc])
+            p_muc_final += p_muc
+            r_muc_final += r_muc
+            f1_muc_final += f1_muc
 
-print("CEAF")
+            p_b3, r_b3, f1_b3 = compute_bcubed(golden_mentions[doc], predict_mentions[doc])
+            p_b3_final += p_b3
+            r_b3_final += r_b3
+            f1_b3_final += f1_b3
 
-p_ceaf_final = p_ceaf_final / len(golden_mentions)
-r_ceaf_final = r_ceaf_final / len(golden_mentions)
-f1_ceaf_final = f1_ceaf_final / len(golden_mentions)
+            p_ceaf, r_ceaf, f1_ceaf = compute_ceaf(golden_mentions[doc], predict_mentions[doc])
+            p_ceaf_final += p_ceaf
+            r_ceaf_final += r_ceaf
+            f1_ceaf_final += f1_ceaf
 
-print(p_ceaf_final, r_ceaf_final, f1_ceaf_final)
+            precision, recall, f1 = compute_mentions_metrics(
+                golden_mentions[doc], predict_mentions[doc])
+            precision_final += precision
+            recall_final += recall
+            f1_final += f1
+
+    precision_final = precision_final / len(golden_mentions)
+    recall_final = recall_final / len(golden_mentions)
+    f1_final = f1_final / len(golden_mentions)
+
+    print(precision_final, recall_final, f1_final)
+
+    print("MUC")
+
+    p_muc_final = p_muc_final / len(golden_mentions)
+    r_muc_final = r_muc_final / len(golden_mentions)
+    f1_muc_final = f1_muc_final / len(golden_mentions)
+
+    print(p_muc_final, r_muc_final, f1_muc_final)
+
+    print("B3")
+
+    p_b3_final = p_b3_final / len(golden_mentions)
+    r_b3_final = r_b3_final / len(golden_mentions)
+    f1_b3_final = f1_b3_final / len(golden_mentions)
+
+    print(p_b3_final, r_b3_final, f1_b3_final)
+
+    print("CEAF")
+
+    p_ceaf_final = p_ceaf_final / len(golden_mentions)
+    r_ceaf_final = r_ceaf_final / len(golden_mentions)
+    f1_ceaf_final = f1_ceaf_final / len(golden_mentions)
+
+    print(p_ceaf_final, r_ceaf_final, f1_ceaf_final)
+
+if __name__ == "__main__":
+    main()

@@ -111,6 +111,7 @@ deepspeed main_trainer.py \
     --align_mode l \
     --min_num_mentions $min_num_mentions \
     --add_mention_end False
+    --language english
 
 
 
