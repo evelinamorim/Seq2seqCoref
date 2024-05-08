@@ -106,6 +106,8 @@ class DataArguments:
 class CorefTrainingArguments(Seq2SeqTrainingArguments):
     do_train: bool = field(default=True,
                            metadata={"help": "Whether to run training."})
+    device: Optional[str] = field(default="cpu",
+                           metadata={"help": "Which device to use"})
     save_dir: Optional[str] = field(
         default=None, metadata={"help": "Path to save predicts directory"}
     )
