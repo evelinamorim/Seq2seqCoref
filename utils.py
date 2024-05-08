@@ -231,6 +231,13 @@ def split_list(ls, delimiter, include_delimiter):
         for x, y in itertools.groupby(ls, lambda z: z == delimiter):
             if x:
                 spl.append([])
+
+            if len(spl) > 0:
+                spl[-1].extend(y)
+
+        if len(spl) == 0:
+            # probably only one sentence (without delimiters)
+            spl.append([])
             spl[-1].extend(y)
     return spl
 

@@ -42,7 +42,12 @@ def main():
     output_path = "/home/uud15559/Seq2seqCoref/spanish/output/"
 
     for doc in sentences:
-        output_file = os.path.join(output_path, doc + ".joblib")
+        if "/" in doc:
+            doc_name = doc.replace("/","_")
+        else:
+            doc_name = doc
+        
+        output_file = os.path.join(output_path, doc_name + ".joblib")
         if os.path.exists(output_file):
             continue
 
