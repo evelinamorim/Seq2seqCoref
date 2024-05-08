@@ -1,0 +1,29 @@
+{
+"output_dir": ,
+  "model_name_or_path": "google/mt5-small\",
+  "save_strategy": 800,
+  "logging_steps": 100,
+  "evaluation_strategy":800,
+  "log_step": 800,
+  "data_dir": ,
+  "save_dir": ,
+  "learning_rate": 5e-5,
+  "num_train_epochs": 10,
+  "logging_dir": ,
+  "warmup_ratio":0.1
+  "max_train_len":1024,
+  "max_train_len_out": 4096,
+  "max_eval_len": 4096,
+  "generation_num_beams": 4,
+  "generation_max_length": 4096
+  "weight_decay": 0.01,
+  "bf16": True,
+  "save_steps": 800,
+ "eval_delay": 30000,
+  "deepspeed": "$ds_config_dir/ds_stage2.json",
+  "seq2seq_type": "short_seq",
+  "action_type": "integer",
+  "align_mode": "l",
+  "min_num_mentions": 2,
+  "language": "portuguese"
+}
