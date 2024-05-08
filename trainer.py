@@ -26,7 +26,7 @@ import torch
 import shutil
 from transformers.debug_utils import DebugOption, DebugUnderflowOverflow
 import math
-from transformers.pytorch_utils import is_torch_less_than_1_12
+from transformers.pytorch_utils import is_torch_greater_or_equal_than_1_12
 from torch.utils.data import DataLoader
 from transformers.trainer_utils import EvalLoopOutput, has_length, \
     denumpify_detensorize, ShardedDDPOption
