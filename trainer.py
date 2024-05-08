@@ -228,13 +228,14 @@ class CorefTrainer(Seq2SeqTrainer):
         #)
         delay_optimizer_creation = True
         if args.deepspeed:
-            deepspeed_engine, optimizer, lr_scheduler = deepspeed_init(
+            optimizer, lr_scheduler = deepspeed_init(
                 self, num_training_steps=max_steps
                 #resume_from_checkpoint=resume_from_checkpoint
             )
-            self.model = deepspeed_engine.module
-            self.model_wrapped = deepspeed_engine
-            self.deepspeed = deepspeed_engine
+            #deepspeed_engine,
+            #self.model = deepspeed_engine.module
+            #self.model_wrapped = deepspeed_engine
+            #self.deepspeed = deepspeed_engine
             self.optimizer = optimizer
             self.lr_scheduler = lr_scheduler
         elif not delay_optimizer_creation:
@@ -255,6 +256,9 @@ class CorefTrainer(Seq2SeqTrainer):
         # for the rest of this function `model` is the outside model, whether it was wrapped or not
         if model is not self.model:
             self.model_wrapped = model
+
+        if self.deepspeed:
+            self.deepspeed = self.model_wrapped
 
         if delay_optimizer_creation:
             self.create_optimizer_and_scheduler(num_training_steps=max_steps)
