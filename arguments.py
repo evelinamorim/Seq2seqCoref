@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Union
+
+import torch
 from transformers import Seq2SeqTrainingArguments
 from trainer import OptimizerNames
 
@@ -106,7 +108,7 @@ class DataArguments:
 class CorefTrainingArguments(Seq2SeqTrainingArguments):
     do_train: bool = field(default=True,
                            metadata={"help": "Whether to run training."})
-    device: Optional[str] = field(default="cpu",
+    device: Optional[torch.device] = field(default=torch.device("cpu"),
                            metadata={"help": "Which device to use"})
     save_dir: Optional[str] = field(
         default=None, metadata={"help": "Path to save predicts directory"}
