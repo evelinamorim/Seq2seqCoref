@@ -187,3 +187,4 @@ class CorefTrainingArguments(Seq2SeqTrainingArguments):
     joint_train: Optional[bool] = field(
         default=False, metadata={"help": "whether to use joint training"}
     )
+

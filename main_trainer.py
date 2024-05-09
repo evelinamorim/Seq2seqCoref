@@ -131,6 +131,8 @@ def main():
     tb_callback = TensorBoardCallback()
     if training_args.parallelize_model:
         model.parallelize()
+
+    training_args.accelerator_config = {"gradient_accumulation_kwargs":{"num_steps":2}}
     trainer = CorefTrainer(
         tokenizer=tokenizer,
         model=model,
