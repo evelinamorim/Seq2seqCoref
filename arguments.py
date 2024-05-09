@@ -5,6 +5,8 @@ import torch
 from transformers import Seq2SeqTrainingArguments
 from trainer import OptimizerNames
 
+from accelerate import PartialState
+
 @dataclass
 class ModelArguments:
     model_name_or_path: str = field(
@@ -109,7 +111,8 @@ class CorefTrainingArguments(Seq2SeqTrainingArguments):
                            metadata={"help": "Whether to run training."})
     device: Optional[torch.device] = field(default=torch.device("cpu"),
                            metadata={"help": "Which device to use"})
-
+    distributed_state: Optional[PartialState] = field(default=None,
+                                                      metadata={"help":"store information about certain configurations or states"})
     save_dir: Optional[str] = field(
         default=None, metadata={"help": "Path to save predicts directory"}
     )
