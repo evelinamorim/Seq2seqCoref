@@ -32,13 +32,24 @@ if __name__ == "__main__":
     config = AutoConfig.from_pretrained(model_args.model_name_or_path)
     model = AutoModelForSeq2SeqLM.from_pretrained(
         model_args.model_name_or_path, config=config)
-    collator = DataCollatorForSeq2Seq(tokenizer, model=model)
 
+    collator = DataCollatorForSeq2Seq(tokenizer, model=model)
     train_set = CorefDataset(tokenizer, data_args, training_args, 'train')
+
     tb_callback = TensorBoardCallback()
 
-    accelerator = Accelerator()
-    trainer = accelerator.prepare(CorefTrainer(
+    #accelerator = Accelerator()
+    #trainer = accelerator.prepare(CorefTrainer(
+    #    tokenizer=tokenizer,
+    #    model=model,
+    #    args=training_args,
+    #    train_dataset=train_set,
+    #    #        eval_dataset=dev_set,
+    #    data_collator=collator,
+    #    callbacks=[tb_callback]
+    #))
+
+    trainer = CorefTrainer(
         tokenizer=tokenizer,
         model=model,
         args=training_args,
@@ -46,5 +57,5 @@ if __name__ == "__main__":
         #        eval_dataset=dev_set,
         data_collator=collator,
         callbacks=[tb_callback]
-    ))
+    )
     trainer.train()
