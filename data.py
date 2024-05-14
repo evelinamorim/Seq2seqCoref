@@ -279,9 +279,9 @@ class CorefDataset(Dataset):
                                      dtype=torch.long)
             input_len, tgt_len = input_ids.size(0), label_ids.size(0)
             attention_mask = torch.tensor([1] * input_len, dtype=torch.long)
-            src_encoding = {'input_ids': input_ids,
-                            'attention_mask': attention_mask,
-                            'labels': label_ids,
+            src_encoding = {'input_ids': input_ids.unsqueeze(0),
+                            'attention_mask': attention_mask.unsqueeze(0),
+                            'labels': label_ids.unsqueeze(0),
                             }
         return src_encoding
 
